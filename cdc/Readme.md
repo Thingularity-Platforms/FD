@@ -89,7 +89,7 @@ java -version
 
 ### Step 2 — Python 3.10
 
-1. Download from [python.org](https://www.python.org/downloads/release/python-3100/)
+1. Download from [python.org](https://www.python.org/ftp/python/3.10.11/python-3.10.11-amd64.exe)
 2. Run installer — check **"Add Python to PATH"** during setup
 3. Verify:
 
