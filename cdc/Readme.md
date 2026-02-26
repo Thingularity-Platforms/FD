@@ -24,24 +24,6 @@ Silver Delta Table          (./silver/orders)
 Silver Rejected Delta Table (./silver/orders_rejected)
 ```
 
-### Fabric Setup (Production)
-```
-MySQL (on-prem)
-    ↓  binlog
-Debezium (on-prem Docker)
-    ↓  CDC events
-Azure Event Hubs
-    ↓  Kafka-compatible protocol
-Fabric Spark Job — Bronze
-    ↓
-OneLake  Tables/bronze_orders
-    ↓  Delta stream
-Fabric Spark Job — Silver
-    ↓
-OneLake  Tables/silver_orders
-OneLake  Tables/silver_orders_rejected
-```
-
 ---
 
 ## Project Structure
@@ -60,26 +42,6 @@ cdc/
     ├── cleansing.py        # Standardize, deduplicate, validate, split
     ├── silver_writer.py    # Silver Delta upsert + rejected append
     └── silver_main.py      # Silver job entry point
-```
-
----
-
-## Quick Start
-
-Once all prerequisites are installed, the full pipeline starts in 3 terminals:
-
-```powershell
-# Terminal 1 — infrastructure
-docker-compose up -d
-
-# Wait ~30 seconds, then register Debezium
-Invoke-RestMethod -Method POST -Uri http://localhost:8083/connectors -ContentType "application/json" -Body '{"name":"mysql-cdc-connector","config":{"connector.class":"io.debezium.connector.mysql.MySqlConnector","tasks.max":"1","database.hostname":"mysql","database.port":"3306","database.user":"cdcuser","database.password":"cdcpass","database.server.id":"184054","topic.prefix":"cdc","database.include.list":"sourcedb","decimal.handling.mode":"double","schema.history.internal.kafka.bootstrap.servers":"kafka:29092","schema.history.internal.kafka.topic":"schema-changes.sourcedb"}}'
-
-# Terminal 2 — Bronze streaming job
-python main.py
-
-# Terminal 3 — Silver streaming job
-python silver/silver_main.py
 ```
 
 ---
@@ -224,20 +186,6 @@ docker-compose --version
 
 ---
 
-### Step 7 — Update config.py Python Paths
-
-Open `config.py` and update the Python path to match your installation:
-
-```python
-os.environ['PYSPARK_PYTHON'] = r'C:\Users\<YOUR_USERNAME>\AppData\Local\Programs\Python\Python310\python.exe'
-os.environ['PYSPARK_DRIVER_PYTHON'] = r'C:\Users\<YOUR_USERNAME>\AppData\Local\Programs\Python\Python310\python.exe'
-```
-
-Find your exact path:
-```powershell
-where python
-```
-
 ---
 
 ### Step 8 — Verify Full Environment
@@ -351,6 +299,26 @@ services:
 
 volumes:
   mysql-data:
+```
+
+---
+
+## Quick Start
+
+Once all prerequisites are installed, the full pipeline starts in 3 terminals:
+
+```powershell
+# Terminal 1 — infrastructure
+docker-compose up -d
+
+# Wait ~30 seconds, then register Debezium
+Invoke-RestMethod -Method POST -Uri http://localhost:8083/connectors -ContentType "application/json" -Body '{"name":"mysql-cdc-connector","config":{"connector.class":"io.debezium.connector.mysql.MySqlConnector","tasks.max":"1","database.hostname":"mysql","database.port":"3306","database.user":"cdcuser","database.password":"cdcpass","database.server.id":"184054","topic.prefix":"cdc","database.include.list":"sourcedb","decimal.handling.mode":"double","schema.history.internal.kafka.bootstrap.servers":"kafka:29092","schema.history.internal.kafka.topic":"schema-changes.sourcedb"}}'
+
+# Terminal 2 — Bronze streaming job
+python main.py
+
+# Terminal 3 — Silver streaming job
+python silver/silver_main.py
 ```
 
 **Key design decisions:**
